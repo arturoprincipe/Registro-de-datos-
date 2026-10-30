@@ -1,0 +1,333 @@
+/* estilo.css: estilo futurista de vidrio con neón magenta */
+
+/* 1. Colores */
+:root {
+    --fondo: #0b0414;
+    --magenta: #ff2bd6;
+    --rosa: #ff5fa2;
+    --rosa-claro: #ffc2ec;
+    --violeta: #9b35e8;
+    --coral: #ff5f6d;
+    --texto: #f7ecff;
+    --texto-suave: rgba(255, 255, 255, .65);
+    --vidrio: rgba(255, 255, 255, .07);
+    --borde-vidrio: rgba(255, 255, 255, .18);
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    color: var(--texto);
+    background: var(--fondo);
+}
+
+/* 2. Fondo de la página: luces, cuadrícula, ondas y anillos */
+.escena {
+    position: relative;
+    overflow: hidden;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 12px;
+    background:
+        radial-gradient(circle at 15% 10%, rgba(155, 53, 232, .55), transparent 45%),
+        radial-gradient(circle at 85% 95%, rgba(255, 43, 214, .45), transparent 45%),
+        var(--fondo);
+}
+.escena::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        repeating-linear-gradient(0deg, rgba(255, 95, 162, .06) 0 1px, transparent 1px 40px),
+        repeating-linear-gradient(90deg, rgba(255, 95, 162, .06) 0 1px, transparent 1px 40px);
+}
+.ondas {
+    position: absolute;
+    left: -40px;
+    bottom: 0;
+    width: 760px;
+    height: 170px;
+    pointer-events: none;
+    filter: drop-shadow(0 0 6px var(--magenta));
+    animation: mover-ondas 8s ease-in-out infinite alternate;
+}
+.anillo {
+    position: absolute;
+    border: 1px dashed rgba(255, 95, 162, .4);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: girar 40s linear infinite;
+}
+.anillo-uno { width: 230px; height: 230px; left: -60px; top: -50px; }
+.anillo-dos { width: 170px; height: 170px; right: -30px; bottom: 90px; }
+
+/* Da la perspectiva para el efecto 3D */
+.escenario {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 380px;
+    perspective: 900px;
+}
+
+/* 3. Tarjeta de vidrio y cuadros (cada .cuadro tiene su borde) */
+.tarjeta {
+    padding: 14px;
+    border-radius: 24px;
+    background: var(--vidrio);
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
+    border: 1px solid rgba(255, 95, 162, .45);
+    box-shadow: 0 0 34px rgba(255, 43, 214, .35);
+    transition: transform .15s ease-out;
+    animation: aparecer .6s ease;
+}
+
+.cuadro {
+    padding: 14px;
+    margin-bottom: 12px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, .05);
+    border: 1px solid rgba(255, 95, 162, .4);
+    transition: border-color .25s, box-shadow .25s;
+}
+/* El borde se ilumina al pasar el puntero */
+.cuadro:hover {
+    border-color: var(--magenta);
+    box-shadow: 0 0 24px rgba(255, 43, 214, .35);
+}
+.cuadro-centrado { text-align: center; }
+
+/* 4. Cabecera: logo y título */
+.cabecera-icono {
+    position: relative;
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 6px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    color: #fff;
+    background: rgba(255, 43, 214, .18);
+    box-shadow: 0 0 22px rgba(255, 43, 214, .55);
+    transition: transform .3s, box-shadow .3s;
+}
+.cuadro:hover .cabecera-icono {
+    transform: scale(1.1) rotate(-8deg);
+    box-shadow: 0 0 30px var(--magenta);
+}
+.cabecera-icono .icono { width: 28px; height: 28px; }
+.cabecera-icono::after {
+    content: "";
+    position: absolute;
+    inset: -7px;
+    border: 1px dashed var(--rosa);
+    border-radius: 50%;
+    animation: girar 9s linear infinite;
+}
+
+.titulo {
+    margin: 8px 0 0;
+    text-align: center;
+    font-size: 1.35rem;
+    font-weight: 600;
+    background: linear-gradient(90deg, var(--rosa-claro), var(--magenta), #b86bff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    transition: filter .25s;
+}
+.cuadro:hover .titulo { filter: drop-shadow(0 0 8px var(--magenta)); }
+.subtitulo {
+    margin: 2px 0 6px;
+    text-align: center;
+    font-size: .85rem;
+    color: var(--texto-suave);
+}
+
+/* 5. Animaciones: entrada, giros, ondas y despegue del cohete */
+@keyframes aparecer    { from { opacity: 0; transform: translateY(30px); } }
+@keyframes girar       { to { transform: rotate(360deg); } }
+@keyframes mover-ondas { to { transform: translateX(40px); } }
+@keyframes despegar {
+    0%   { transform: translate(0, 0); opacity: 1; }
+    45%  { transform: translate(14px, -14px); opacity: 0; }
+    55%  { transform: translate(-14px, 14px); opacity: 0; }
+    100% { transform: translate(0, 0); opacity: 1; }
+}
+
+/* 6. Íconos: al pasar el puntero se levantan, giran y brillan */
+.icono {
+    width: 20px;
+    height: 20px;
+    flex: none;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform .25s;
+}
+.icono-caja {
+    width: 40px;
+    height: 40px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    color: var(--rosa);
+    background: rgba(255, 255, 255, .08);
+    border: 1px solid var(--borde-vidrio);
+    transition: transform .25s, background .25s, color .25s, box-shadow .25s;
+}
+.campo:hover .icono-caja,
+.campo:focus-within .icono-caja,
+.fila:hover .icono-caja {
+    transform: translateY(-3px) rotate(-8deg) scale(1.08);
+    color: #fff;
+    background: linear-gradient(135deg, var(--violeta), var(--magenta));
+    box-shadow: 0 0 18px var(--magenta);
+}
+
+/* 7. Formulario */
+.campo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+}
+.formulario { padding: 0 6px; }
+.campo-cuerpo { flex: 1; min-width: 0; display: grid; gap: 4px; }
+.etiqueta { font-size: .75rem; font-weight: 600; color: var(--texto-suave); }
+
+input, select {
+    width: 100%;
+    height: 36px;
+    padding: 0 10px;
+    font: inherit;
+    font-size: .88rem;
+    color: #fff;
+    color-scheme: dark;
+    background: rgba(255, 255, 255, .06);
+    border: 1px solid var(--borde-vidrio);
+    border-radius: 10px;
+    transition: border-color .2s, box-shadow .2s;
+}
+select option { background: #1a0b2b; color: #fff; }
+input::placeholder { color: rgba(255, 255, 255, .4); }
+input:hover, select:hover { border-color: var(--rosa); }
+input:focus, select:focus {
+    outline: none;
+    border-color: var(--magenta);
+    box-shadow: 0 0 0 3px rgba(255, 43, 214, .3);
+}
+
+/* Mensaje de error */
+.error {
+    margin: 14px 0 0;
+    padding: 10px 12px;
+    font-size: .85rem;
+    font-weight: 600;
+    color: #ffd3da;
+    background: rgba(255, 95, 109, .15);
+    border-left: 4px solid var(--coral);
+    border-radius: 10px;
+}
+
+/* 8. Botón */
+.boton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    height: 44px;
+    margin-top: 16px;
+    border: 0;
+    border-radius: 12px;
+    font: inherit;
+    font-weight: 600;
+    color: #fff;
+    text-decoration: none;
+    cursor: pointer;
+    background: linear-gradient(90deg, var(--violeta), var(--magenta), var(--coral));
+    background-size: 200% 100%;
+    box-shadow: 0 0 24px rgba(255, 43, 214, .5);
+    transition: transform .25s, background-position .4s;
+}
+.boton:hover { transform: translateY(-2px); background-position: 100% 0; }
+.boton:active { transform: translateY(1px); }
+.boton:focus-visible { outline: 3px solid var(--rosa-claro); outline-offset: 3px; }
+.formulario .boton:hover .icono:last-child { transform: translateX(5px); }
+
+/* 9. Resultado: nombre, cuadro de éxitos (cohete) y filas de datos */
+.nombre-estudiante {
+    margin: 3px 0 0;
+    font-size: .95rem;
+    font-weight: 600;
+    color: #fff;
+    overflow-wrap: anywhere;
+}
+
+.exito { display: flex; align-items: center; gap: 12px; }
+.exito strong { font-size: .88rem; color: #fff; }
+.exito p { margin: 3px 0 0; font-size: .82rem; color: var(--texto-suave); overflow-wrap: anywhere; }
+.exito b { color: #fff; }
+.exito-icono {
+    width: 46px;
+    height: 46px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border-radius: 50%;
+    color: #fff;
+    background: linear-gradient(135deg, var(--coral), var(--magenta));
+    box-shadow: 0 0 18px rgba(255, 43, 214, .5);
+    transition: transform .3s, box-shadow .3s;
+}
+.exito-icono .icono { width: 22px; height: 22px; }
+.exito:hover .exito-icono { transform: scale(1.1); box-shadow: 0 0 28px var(--magenta); }
+.exito:hover .exito-icono .icono { animation: despegar .9s ease; }
+
+.datos-titulo { margin: 0 0 2px; font-size: .95rem; font-weight: 600; color: var(--rosa-claro); }
+
+/* Cada dato se corre, se ilumina y muestra una barra rosa al pasar el puntero */
+.fila {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+    padding: 7px 10px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, .05);
+    border: 1px solid rgba(255, 255, 255, .1);
+    transition: transform .25s, background .25s, border-color .25s, box-shadow .25s;
+}
+.fila:hover {
+    transform: translateX(6px);
+    background: rgba(255, 43, 214, .13);
+    border-color: var(--magenta);
+    box-shadow: -4px 0 0 var(--rosa), 0 0 18px rgba(255, 43, 214, .28);
+}
+.fila div { display: grid; min-width: 0; line-height: 1.3; }
+.fila small { font-size: .72rem; color: var(--texto-suave); }
+.fila b { font-size: .88rem; font-weight: 600; color: #fff; overflow-wrap: anywhere; }
+
+/* 10. Pie, celulares y accesibilidad */
+.pie { margin: 14px 0 0; text-align: center; font-size: .72rem; color: rgba(255, 255, 255, .5); }
+
+@media (max-width: 420px) {
+    .tarjeta { padding: 18px 14px; }
+    .titulo { font-size: 1.2rem; }
+}
+
+/* Sin animaciones si el sistema tiene activado "reducir movimiento" */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+}
