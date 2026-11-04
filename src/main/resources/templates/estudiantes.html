@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Gestión de estudiantes</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 30px 15px;
+            font-family: Arial, sans-serif;
+            background: #f3f5f9;
+            color: #263247;
+        }
+
+        .contenedor {
+            max-width: 1250px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 15px rgba(0,0,0,.07);
+        }
+
+        h1 {
+            color: #183b63;
+            margin-top: 0;
+        }
+
+        .resumen {
+            display: inline-block;
+            padding: 12px 18px;
+            margin: 10px 0 20px;
+            background: #eaf2ff;
+            border-radius: 8px;
+            color: #183b63;
+            font-weight: bold;
+        }
+
+        .herramientas {
+            display: grid;
+            grid-template-columns: 2fr 1.5fr 1.5fr auto;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #ccd4df;
+            border-radius: 7px;
+            font-size: 14px;
+            background: white;
+        }
+
+        button, .boton {
+            border: none;
+            border-radius: 7px;
+            padding: 11px 15px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .actualizar {
+            background: #183b63;
+            color: white;
+        }
+
+        .editar {
+            background: #e8f0ff;
+            color: #183b63;
+        }
+
+        .eliminar {
+            background: #ffe8e8;
+            color: #b42318;
+        }
+
+        .tabla-contenedor {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            min-width: 1050px;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px 10px;
+            text-align: left;
+            border-bottom: 1px solid #e5e9ef;
+        }
+
+        th {
+            background: #183b63;
+            color: white;
+        }
+
+        tr:hover td {
+            background: #f5f8fc;
+        }
+
+        .acciones {
+            display: flex;
+            gap: 7px;
+        }
+
+        .mensaje {
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 7px;
+            background: #e5f7eb;
+            color: #176b35;
+        }
+
+        .error {
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 7px;
+            background: #ffe8e8;
+            color: #a52222;
+        }
+
+        .vacio {
+            text-align: center;
+            padding: 25px;
+            color: #777;
+        }
+
+        .acciones-finales {
+            margin-top: 25px;
+        }
+
+        .volver {
+            background: #183b63;
+            color: white;
+        }
+
+        dialog {
+            width: min(500px, 92%);
+            border: none;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 5px 30px rgba(0,0,0,.25);
+        }
+
+        dialog::backdrop {
+            background: rgba(0,0,0,.5);
+        }
+
+        .formulario {
+            display: grid;
+            gap: 12px;
+        }
+
+        .formulario label {
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .botones-modal {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .guardar {
+            background: #183b63;
+            color: white;
+        }
+
+        .cancelar {
+            background: #e5e7eb;
+            color: #333;
+        }
+
+        @media(max-width: 800px) {
+            .herramientas {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="contenedor">
+
+    <h1>Gestión de estudiantes</h1>
+
+    <p>Consulta y administra los estudiantes registrados en Neon.</p>
+
+    <div class="resumen">
+        Total de estudiantes:
+        <span th:text="${totalEstudiantes}">0</span>
+    </div>
+
+    <div th:if="${mensaje}" class="mensaje"
+         th:text="${mensaje}"></div>
+
+    <div th:if="${error}" class="error"
+         th:text="${error}"></div>
+
+    <!-- BUSCADOR, FILTRO Y ORDENAMIENTO -->
+
+    <div class="herramientas">
+
+        <input
+            type="search"
+            id="buscar"
+            placeholder="Buscar por ID o nombre..."
+            autocomplete="off">
+
+        <select id="filtroCarrera">
+            <option value="">Todas las carreras</option>
+            <option th:each="carrera : ${carreras}"
+                    th:value="${carrera}"
+                    th:text="${carrera}">
+            </option>
+        </select>
+
+        <select id="ordenar">
+            <option value="id">Orden original (ID)</option>
+            <option value="nombre-asc">Nombre A - Z</option>
+            <option value="nombre-desc">Nombre Z - A</option>
+            <option value="apellido-asc">Apellido A - Z</option>
+            <option value="apellido-desc">Apellido Z - A</option>
+        </select>
+
+        <button type="button" class="actualizar"
+                onclick="window.location.reload()">
+            Actualizar lista
+        </button>
+
+    </div>
+
+    <!-- TABLA DE ESTUDIANTES -->
+
+    <div class="tabla-contenedor">
+
+        <table id="tablaEstudiantes">
+
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Fecha nacimiento</th>
+                    <th>Edad</th>
+                    <th>Carrera</th>
+                    <th>Semestre</th>
+                    <th>Hobby</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody id="cuerpoTabla">
+
+                <tr th:each="estudiante : ${estudiantes}"
+                    th:attr="
+                    data-id=${estudiante.idEstudiante},
+                    data-nombre=${estudiante.nombre},
+                    data-carrera=${estudiante.carrera},
+                    data-fecha=${#temporals.format(estudiante.fechaNacimiento, 'yyyy-MM-dd')},
+                    data-semestre=${estudiante.semestre},
+                    data-hobby=${estudiante.hobby}">
+
+                    <td th:text="${estudiante.idEstudiante}"></td>
+
+                    <td th:text="${estudiante.nombre}"></td>
+
+                    <td th:text="${#temporals.format(estudiante.fechaNacimiento, 'dd/MM/yyyy')}"></td>
+
+                    <td th:text="${estudiante.edad}"></td>
+
+                    <td th:text="${estudiante.carrera}"></td>
+
+                    <td th:text="${estudiante.semestre}"></td>
+
+                    <td th:text="${estudiante.hobby}"></td>
+
+                    <td>
+                        <div class="acciones">
+
+                            <button type="button"
+                                    class="editar"
+                                    onclick="abrirEdicion(this)"
+                                    th:attr="
+                                    data-id=${estudiante.idEstudiante},
+                                    data-nombre=${estudiante.nombre},
+                                    data-fecha=${#temporals.format(estudiante.fechaNacimiento, 'yyyy-MM-dd')},
+                                    data-carrera=${estudiante.carrera},
+                                    data-semestre=${estudiante.semestre},
+                                    data-hobby=${estudiante.hobby}">
+                                Editar
+                            </button>
+
+                            <form method="post"
+                                  action="/estudiantes/eliminar"
+                                  onsubmit="return confirm('¿Seguro que deseas eliminar este estudiante? Esta acción no se puede deshacer.');">
+
+                                <input type="hidden"
+                                       name="id"
+                                       th:value="${estudiante.idEstudiante}">
+
+                                <button type="submit" class="eliminar">
+                                    Eliminar
+                                </button>
+
+                            </form>
+
+                        </div>
+                    </td>
+
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(estudiantes)}">
+                    <td colspan="8" class="vacio">
+                        Todavía no hay estudiantes registrados.
+                    </td>
+                </tr>
+
+            </tbody>
+
+        </table>
+
+        <p id="sinResultados" class="vacio" hidden>
+            No se encontraron estudiantes con esos criterios.
+        </p>
+
+    </div>
+
+    <div class="acciones-finales">
+        <a href="/" class="boton volver">Volver al formulario</a>
+    </div>
+
+</div>
+
+<!-- VENTANA PARA EDITAR -->
+
+<dialog id="modalEditar">
+
+    <h2>Editar estudiante</h2>
+
+    <form method="post"
+          action="/estudiantes/actualizar"
+          class="formulario">
+
+        <input type="hidden" name="id" id="editId">
+
+        <label>Nombre completo</label>
+        <input type="text" name="nombre" id="editNombre"
+               maxlength="100" required>
+
+        <label>Fecha de nacimiento</label>
+        <input type="date" name="fechaNacimiento"
+               id="editFecha" required>
+
+        <label>Carrera</label>
+        <select name="carrera" id="editCarrera" required>
+            <option th:each="carrera : ${carreras}"
+                    th:value="${carrera}"
+                    th:text="${carrera}">
+            </option>
+        </select>
+
+        <label>Semestre</label>
+        <select name="semestre" id="editSemestre" required>
+            <option>I semestre</option>
+            <option>II semestre</option>
+            <option>III semestre</option>
+            <option>IV semestre</option>
+            <option>V semestre</option>
+            <option>VI semestre</option>
+        </select>
+
+        <label>Hobby</label>
+        <input type="text" name="hobby" id="editHobby"
+               maxlength="50" required>
+
+        <div class="botones-modal">
+
+            <button type="submit" class="guardar">
+                Guardar cambios
+            </button>
+
+            <button type="button" class="cancelar"
+                    onclick="document.getElementById('modalEditar').close()">
+                Cancelar
+            </button>
+
+        </div>
+
+    </form>
+
+</dialog>
+
+<script>
+
+    const buscar = document.getElementById("buscar");
+    const filtroCarrera = document.getElementById("filtroCarrera");
+    const ordenar = document.getElementById("ordenar");
+    const cuerpoTabla = document.getElementById("cuerpoTabla");
+    const sinResultados = document.getElementById("sinResultados");
+
+    function aplicarFiltros() {
+
+        const texto = buscar.value.trim().toLowerCase();
+        const carreraSeleccionada = filtroCarrera.value;
+
+        const filas = Array.from(
+            cuerpoTabla.querySelectorAll("tr[data-id]")
+        );
+
+        filas.forEach(fila => {
+
+            const id = fila.dataset.id.toLowerCase();
+            const nombre = fila.dataset.nombre.toLowerCase();
+            const carrera = fila.dataset.carrera;
+
+            const coincideTexto =
+                id.includes(texto) || nombre.includes(texto);
+
+            const coincideCarrera =
+                carreraSeleccionada === "" ||
+                carrera === carreraSeleccionada;
+
+            fila.hidden = !(coincideTexto && coincideCarrera);
+
+        });
+
+        const filasVisibles = filas.filter(fila => !fila.hidden);
+
+        sinResultados.hidden = filasVisibles.length !== 0;
+
+        ordenarFilas(filasVisibles);
+    }
+
+    function ordenarFilas(filas) {
+
+        const criterio = ordenar.value;
+
+        filas.sort((a, b) => {
+
+            const nombreA = a.dataset.nombre.toLowerCase();
+            const nombreB = b.dataset.nombre.toLowerCase();
+
+            const idA = Number(a.dataset.id);
+            const idB = Number(b.dataset.id);
+
+            const apellidoA = nombreA.trim().split(/\s+/).pop();
+            const apellidoB = nombreB.trim().split(/\s+/).pop();
+
+            let resultado = 0;
+
+            if (criterio === "nombre-asc") {
+                resultado = nombreA.localeCompare(nombreB);
+            }
+
+            if (criterio === "nombre-desc") {
+                resultado = nombreB.localeCompare(nombreA);
+            }
+
+            if (criterio === "apellido-asc") {
+                resultado = apellidoA.localeCompare(apellidoB);
+            }
+
+            if (criterio === "apellido-desc") {
+                resultado = apellidoB.localeCompare(apellidoA);
+            }
+
+            if (criterio === "id") {
+                resultado = idA - idB;
+            }
+
+            return resultado;
+        });
+
+        filas.forEach(fila => cuerpoTabla.appendChild(fila));
+    }
+
+    buscar.addEventListener("input", aplicarFiltros);
+    filtroCarrera.addEventListener("change", aplicarFiltros);
+    ordenar.addEventListener("change", aplicarFiltros);
+
+    function abrirEdicion(boton) {
+
+        document.getElementById("editId").value =
+            boton.dataset.id;
+
+        document.getElementById("editNombre").value =
+            boton.dataset.nombre;
+
+        document.getElementById("editFecha").value =
+            boton.dataset.fecha;
+
+        document.getElementById("editCarrera").value =
+            boton.dataset.carrera;
+
+        document.getElementById("editSemestre").value =
+            boton.dataset.semestre;
+
+        document.getElementById("editHobby").value =
+            boton.dataset.hobby;
+
+        document.getElementById("modalEditar").showModal();
+    }
+
+</script>
+
+</body>
+</html>
